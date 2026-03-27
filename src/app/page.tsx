@@ -12,7 +12,7 @@ import {
   Check,
   Film,
   Music,
-  Image,
+  ImageIcon,
   FileText,
   Table,
   Archive,
@@ -24,6 +24,7 @@ import {
   ChevronDown,
   Sparkles,
   Loader2,
+  RotateCcw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -65,7 +66,7 @@ import {
 const CATEGORY_ICONS: Record<FormatCategory, React.ReactNode> = {
   video: <Film className="size-3.5" />,
   audio: <Music className="size-3.5" />,
-  image: <Image className="size-3.5" />,
+  image: <ImageIcon className="size-3.5" />,
   document: <FileText className="size-3.5" />,
   spreadsheet: <Table className="size-3.5" />,
   presentation: <FileText className="size-3.5" />,
@@ -170,6 +171,7 @@ export default function Home() {
     setProgress({ percent: 0, stage: "" })
     setOptions({})
     setState("idle")
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }, [])
 
   // Auto-open format picker after file drop
@@ -179,6 +181,10 @@ export default function Home() {
       return () => clearTimeout(timer)
     }
   }, [state, selectedFormat])
+
+  const showControls = file && (state === "file-selected" || state === "error")
+  const showProgress = state === "converting"
+  const showResult = state === "done" && result
 
   return (
     <div className="flex flex-1 flex-col items-center bg-[#FAFAF9]">
@@ -214,113 +220,108 @@ export default function Home() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 pb-20">
-        <AnimatePresence mode="wait">
-          {/* Tagline */}
-          <motion.div
-            key="tagline"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-            className="mb-10 text-center"
-          >
-            <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[#1A1A1A] sm:text-[34px]">
-              Convert anything.
-              <br />
-              <span className="text-[#999]">Right here in your browser.</span>
-            </h1>
-          </motion.div>
+      <main className="relative z-10 flex w-full max-w-2xl flex-1 flex-col items-center px-6 pt-[12vh] pb-20">
+        {/* Tagline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+          className="mb-10 text-center"
+        >
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[#1A1A1A] sm:text-[34px]">
+            Convert anything.
+            <br />
+            <span className="text-[#999]">Right here in your browser.</span>
+          </h1>
+        </motion.div>
 
-          {/* Drop Zone */}
-          <motion.div
-            key="dropzone"
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className="w-full"
+        {/* Drop Zone */}
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          className="w-full"
+        >
+          <div
+            ref={dropZoneRef}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => !file && fileInputRef.current?.click()}
+            className="group relative"
           >
-            <div
-              ref={dropZoneRef}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => state === "idle" && fileInputRef.current?.click()}
-              className="group relative"
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            <motion.div
+              animate={{
+                borderColor: isDragOver
+                  ? "rgb(217, 163, 30)"
+                  : file
+                    ? "rgb(229, 229, 224)"
+                    : "rgb(214, 214, 209)",
+                backgroundColor: isDragOver
+                  ? "rgba(229, 160, 0, 0.03)"
+                  : "rgba(255, 255, 255, 0.8)",
+              }}
+              transition={{ duration: 0.2 }}
+              className={`relative flex min-h-[180px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-8 backdrop-blur-sm transition-shadow ${!file ? "cursor-pointer hover:shadow-[0_2px_20px_rgba(0,0,0,0.04)]" : ""}`}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-
-              {/* Drop zone container */}
-              <motion.div
-                animate={{
-                  borderColor: isDragOver
-                    ? "rgb(217, 163, 30)"
-                    : file
-                      ? "rgb(229, 229, 224)"
-                      : "rgb(214, 214, 209)",
-                  backgroundColor: isDragOver
-                    ? "rgba(229, 160, 0, 0.03)"
-                    : "rgba(255, 255, 255, 0.8)",
-                }}
-                transition={{ duration: 0.2 }}
-                className="relative flex min-h-[220px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-10 backdrop-blur-sm transition-shadow hover:shadow-[0_2px_20px_rgba(0,0,0,0.04)]"
-              >
-                <AnimatePresence mode="wait">
-                  {!file ? (
-                    /* Empty state */
+              <AnimatePresence mode="wait">
+                {!file ? (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="flex flex-col items-center gap-4"
+                  >
                     <motion.div
-                      key="empty"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="flex flex-col items-center gap-4"
+                      animate={{
+                        y: isDragOver ? -6 : 0,
+                        scale: isDragOver ? 1.1 : 1,
+                      }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      className="flex size-14 items-center justify-center rounded-xl bg-[#F0F0ED] transition-colors group-hover:bg-[#E8E8E3]"
                     >
-                      <motion.div
-                        animate={{
-                          y: isDragOver ? -6 : 0,
-                          scale: isDragOver ? 1.1 : 1,
-                        }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                        className="flex size-14 items-center justify-center rounded-xl bg-[#F0F0ED] transition-colors group-hover:bg-[#E8E8E3]"
-                      >
-                        <Upload className="size-5 text-[#888]" />
-                      </motion.div>
-                      <div className="text-center">
-                        <p className="text-[15px] font-medium text-[#444]">
-                          Drop a file here
-                        </p>
-                        <p className="mt-1 text-[13px] text-[#999]">
-                          or click to browse. Video, audio, images, documents, and more.
-                        </p>
-                      </div>
+                      <Upload className="size-5 text-[#888]" />
                     </motion.div>
-                  ) : (
-                    /* File info */
-                    <motion.div
-                      key="file-info"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex w-full items-center gap-4"
-                    >
-                      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#F0F0ED]">
-                        <FileIcon className="size-5 text-[#666]" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[15px] font-medium text-[#1A1A1A]">
-                          {file.name}
-                        </p>
-                        <p className="mt-0.5 text-[13px] text-[#999]">
-                          {formatFileSize(file.size)}
-                          {file.type && (
-                            <span className="ml-2 text-[#BBB]">{file.type}</span>
-                          )}
-                        </p>
-                      </div>
+                    <div className="text-center">
+                      <p className="text-[15px] font-medium text-[#444]">
+                        Drop a file here
+                      </p>
+                      <p className="mt-1 text-[13px] text-[#999]">
+                        or click to browse. Video, audio, images, documents, and more.
+                      </p>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="file-info"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex w-full items-center gap-4"
+                  >
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#F0F0ED]">
+                      <FileIcon className="size-5 text-[#666]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-medium text-[#1A1A1A]">
+                        {file.name}
+                      </p>
+                      <p className="mt-0.5 text-[13px] text-[#999]">
+                        {formatFileSize(file.size)}
+                        {file.type && (
+                          <span className="ml-2 text-[#BBB]">{file.type}</span>
+                        )}
+                      </p>
+                    </div>
+                    {state === "file-selected" && (
                       <Button
                         variant="ghost"
                         size="icon-sm"
@@ -332,160 +333,160 @@ export default function Home() {
                       >
                         <X className="size-4" />
                       </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Format Picker + Convert */}
-          <AnimatePresence>
-            {file && state !== "converting" && state !== "done" && (
-              <motion.div
-                key="controls"
-                initial={{ opacity: 0, y: 10, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: "auto" }}
-                exit={{ opacity: 0, y: 10, height: 0 }}
-                transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
-                className="mt-6 flex w-full flex-col items-center gap-4 sm:flex-row"
-              >
-                {/* Format Picker */}
-                <Popover open={formatPickerOpen} onOpenChange={setFormatPickerOpen}>
-                  <PopoverTrigger
-                    className="flex h-10 w-full items-center justify-between rounded-xl border border-[#E5E5E0] bg-white px-4 text-[14px] text-[#444] transition-colors hover:border-[#D5D5D0] sm:flex-1"
-                  >
-                    {selectedFormat ? (
-                      <span className="flex items-center gap-2">
-                        {CATEGORY_ICONS[selectedFormat.category]}
-                        <span className="font-medium">{selectedFormat.name}</span>
-                        <span className="text-[12px] text-[#999]">{selectedFormat.extension}</span>
-                      </span>
-                    ) : (
-                      <span className="text-[#999]">Choose output format...</span>
                     )}
-                    <ChevronDown className="size-4 text-[#BBB]" />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[var(--anchor-width)] p-0" align="start" sideOffset={6}>
-                    <Command>
-                      <CommandInput placeholder="Search formats..." />
-                      <CommandList className="max-h-64">
-                        <CommandEmpty>No format found.</CommandEmpty>
-                        {availableFormats.map((group) => (
-                          <CommandGroup key={group.category} heading={group.label}>
-                            {group.formats.map((fmt) => (
-                              <CommandItem
-                                key={fmt.id}
-                                value={`${fmt.name} ${fmt.extension} ${fmt.description}`}
-                                onSelect={() => {
-                                  setSelectedFormat(fmt)
-                                  setFormatPickerOpen(false)
-                                }}
-                                data-checked={selectedFormat?.id === fmt.id || undefined}
-                              >
-                                <span className="flex items-center gap-2">
-                                  {CATEGORY_ICONS[fmt.category]}
-                                  <span className="font-medium">{fmt.name}</span>
-                                </span>
-                                <span className="ml-auto text-[11px] text-[#999]">
-                                  {fmt.description}
-                                </span>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        ))}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        </motion.div>
 
-                {/* Settings + Convert */}
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setSettingsOpen(true)}
-                    className="shrink-0"
-                  >
-                    <Wrench className="size-4" />
-                  </Button>
+        {/* Format Picker + Convert */}
+        <AnimatePresence>
+          {showControls && (
+            <motion.div
+              key="controls"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              className="mt-4 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center"
+            >
+              <Popover open={formatPickerOpen} onOpenChange={setFormatPickerOpen}>
+                <PopoverTrigger
+                  className="flex h-10 w-full items-center justify-between rounded-xl border border-[#E5E5E0] bg-white px-4 text-[14px] text-[#444] transition-colors hover:border-[#D5D5D0] sm:flex-1"
+                >
+                  {selectedFormat ? (
+                    <span className="flex items-center gap-2">
+                      {CATEGORY_ICONS[selectedFormat.category]}
+                      <span className="font-medium">{selectedFormat.name}</span>
+                      <span className="text-[12px] text-[#999]">{selectedFormat.extension}</span>
+                    </span>
+                  ) : (
+                    <span className="text-[#999]">Choose output format...</span>
+                  )}
+                  <ChevronDown className="size-4 text-[#BBB]" />
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--anchor-width)] p-0" align="start" side="bottom" sideOffset={6}>
+                  <Command>
+                    <CommandInput placeholder="Search formats..." />
+                    <CommandList className="max-h-64">
+                      <CommandEmpty>No format found.</CommandEmpty>
+                      {availableFormats.map((group) => (
+                        <CommandGroup key={group.category} heading={group.label}>
+                          {group.formats.map((fmt) => (
+                            <CommandItem
+                              key={fmt.id}
+                              value={`${fmt.name} ${fmt.extension} ${fmt.description}`}
+                              onSelect={() => {
+                                setSelectedFormat(fmt)
+                                setFormatPickerOpen(false)
+                              }}
+                              data-checked={selectedFormat?.id === fmt.id || undefined}
+                            >
+                              <span className="flex items-center gap-2">
+                                {CATEGORY_ICONS[fmt.category]}
+                                <span className="font-medium">{fmt.name}</span>
+                              </span>
+                              <span className="ml-auto text-[11px] text-[#999]">
+                                {fmt.description}
+                              </span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
 
-                  <Button
-                    size="lg"
-                    onClick={handleConvert}
-                    disabled={!selectedFormat}
-                    className="bg-[#1A1A1A] px-6 font-medium text-white hover:bg-[#333] disabled:opacity-40"
-                  >
-                    Convert
-                    <ArrowRight className="ml-1 size-4" />
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Progress */}
-          <AnimatePresence>
-            {state === "converting" && (
-              <motion.div
-                key="progress"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-8 w-full"
-              >
-                <Progress value={progress.percent} className="w-full">
-                  <ProgressLabel className="flex items-center gap-2 text-[13px] text-[#666]">
-                    <Loader2 className="size-3 animate-spin" />
-                    {progress.stage}
-                  </ProgressLabel>
-                  <ProgressValue className="text-[13px] text-[#999]" />
-                </Progress>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Result */}
-          <AnimatePresence>
-            {state === "done" && result && (
-              <motion.div
-                key="result"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-8 flex w-full flex-col items-center gap-4"
-              >
-                <div className="flex w-full items-center justify-between rounded-xl border border-[#E5E5E0] bg-white p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-50">
-                      <Check className="size-4 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-[14px] font-medium text-[#1A1A1A]">{result.filename}</p>
-                      <p className="text-[12px] text-[#999]">
-                        {formatFileSize(result.size)} in {(result.duration / 1000).toFixed(1)}s
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={handleDownload}
-                    className="bg-[#1A1A1A] font-medium text-white hover:bg-[#333]"
-                  >
-                    <Download className="mr-1.5 size-4" />
-                    Download
-                  </Button>
-                </div>
+              <div className="flex gap-2 self-end sm:self-auto">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSettingsOpen(true)}
+                  className="shrink-0"
+                  aria-label="Conversion settings"
+                >
+                  <Wrench className="size-4" />
+                </Button>
 
                 <Button
-                  variant="ghost"
-                  onClick={handleReset}
-                  className="text-[13px] text-[#999]"
+                  size="lg"
+                  onClick={handleConvert}
+                  disabled={!selectedFormat}
+                  className="bg-[#1A1A1A] px-6 font-medium text-white hover:bg-[#333] disabled:opacity-40"
                 >
-                  Convert another file
+                  Convert
+                  <ArrowRight className="ml-1 size-4" />
                 </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Progress */}
+        <AnimatePresence>
+          {showProgress && (
+            <motion.div
+              key="progress"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mt-6 w-full"
+            >
+              <Progress value={progress.percent} className="w-full">
+                <ProgressLabel className="flex items-center gap-2 text-[13px] text-[#666]">
+                  <Loader2 className="size-3 animate-spin" />
+                  {progress.stage}
+                </ProgressLabel>
+                <ProgressValue className="text-[13px] text-[#999]" />
+              </Progress>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Result */}
+        <AnimatePresence>
+          {showResult && (
+            <motion.div
+              key="result"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mt-6 flex w-full flex-col items-center gap-4"
+            >
+              <div className="flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-100">
+                    <Check className="size-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-medium text-[#1A1A1A]">{result.filename}</p>
+                    <p className="text-[12px] text-[#999]">
+                      {formatFileSize(result.size)} in {(result.duration / 1000).toFixed(1)}s
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleDownload}
+                  className="bg-emerald-600 font-medium text-white hover:bg-emerald-700"
+                >
+                  <Download className="mr-1.5 size-4" />
+                  Download
+                </Button>
+              </div>
+
+              <Button
+                variant="ghost"
+                onClick={handleReset}
+                className="text-[13px] text-[#999] hover:text-[#666]"
+              >
+                <RotateCcw className="mr-1.5 size-3" />
+                Convert another file
+              </Button>
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
