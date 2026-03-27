@@ -40,7 +40,19 @@ export async function convert(
   options: ConversionOptions = {},
   onProgress?: ProgressCallback
 ): Promise<ConversionResult> {
-  const engine = outputFormat.engine
+  let engine = outputFormat.engine
+
+  // Smart routing: override engine based on input file type
+  const inputExt = file.name.split(".").pop()?.toLowerCase() || ""
+  const markupInputs = ["md", "markdown", "html", "htm", "rst", "tex", "txt"]
+  if (engine === "mammoth" && !["docx", "doc"].includes(inputExt)) {
+    // Mammoth only handles DOCX. For other inputs targeting HTML/TXT, use pandoc
+    if (markupInputs.includes(inputExt)) {
+      engine = "pandoc"
+    } else {
+      engine = "paged"
+    }
+  }
 
   switch (engine) {
     case "ffmpeg":
@@ -205,7 +217,9 @@ async function convertWithMagick(
   }
 }
 
-// --- resvg (SVG to PNG) ---
+// --- SVG to PNG (Canvas API with resvg-wasm fallback) ---
+
+let resvgInitialized = false
 
 async function convertWithResvg(
   file: File,
@@ -213,31 +227,84 @@ async function convertWithResvg(
   options: ConversionOptions,
   onProgress?: ProgressCallback
 ): Promise<ConversionResult> {
-  onProgress?.({ percent: 10, stage: "Loading SVG renderer..." })
-
-  const resvgWasm = await import("resvg-wasm")
-  await resvgWasm.initWasm(fetch("https://unpkg.com/resvg-wasm@0.5.0/index_bg.wasm"))
-
-  onProgress?.({ percent: 30, stage: "Rendering SVG..." })
+  onProgress?.({ percent: 10, stage: "Rendering SVG..." })
 
   const svgText = await file.text()
   const start = performance.now()
 
-  const renderer = new resvgWasm.Resvg(svgText, {
-    fitTo: options.width ? { mode: "width" as const, value: options.width } : { mode: "original" as const },
-  })
-  const pngData = renderer.render()
-  const pngBuffer = pngData.asPng()
+  // Try resvg-wasm first, fall back to Canvas API
+  try {
+    if (!resvgInitialized) {
+      const resvgWasm = await import("resvg-wasm")
+      await resvgWasm.initWasm(fetch("https://unpkg.com/resvg-wasm@0.5.0/index_bg.wasm"))
+      resvgInitialized = true
+    }
+    const resvgWasm = await import("resvg-wasm")
+    onProgress?.({ percent: 50, stage: "Converting with resvg..." })
+    const renderer = new resvgWasm.Resvg(svgText, {
+      fitTo: options.width ? { mode: "width" as const, value: options.width } : { mode: "original" as const },
+    })
+    const pngData = renderer.render()
+    const pngBuffer = pngData.asPng()
 
-  onProgress?.({ percent: 100, stage: "Done" })
-
-  const blob = new Blob([pngBuffer as BlobPart], { type: "image/png" })
-  return {
-    blob,
-    filename: file.name.replace(/\.[^.]+$/, ".png"),
-    size: blob.size,
-    duration: performance.now() - start,
+    onProgress?.({ percent: 100, stage: "Done" })
+    const blob = new Blob([pngBuffer as BlobPart], { type: "image/png" })
+    return {
+      blob,
+      filename: file.name.replace(/\.[^.]+$/, ".png"),
+      size: blob.size,
+      duration: performance.now() - start,
+    }
+  } catch {
+    // Fallback: use Canvas API (works in all browsers)
+    onProgress?.({ percent: 30, stage: "Rendering with Canvas..." })
+    return svgToCanvasPng(svgText, file.name, options, start, onProgress)
   }
+}
+
+async function svgToCanvasPng(
+  svgText: string,
+  filename: string,
+  options: ConversionOptions,
+  start: number,
+  onProgress?: ProgressCallback
+): Promise<ConversionResult> {
+  // Parse SVG dimensions
+  const parser = new DOMParser()
+  const svgDoc = parser.parseFromString(svgText, "image/svg+xml")
+  const svgEl = svgDoc.documentElement
+  const width = options.width || parseInt(svgEl.getAttribute("width") || "800")
+  const height = options.height || parseInt(svgEl.getAttribute("height") || "600")
+
+  const canvas = document.createElement("canvas")
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext("2d")!
+
+  const img = new window.Image()
+  const svgBlob = new Blob([svgText], { type: "image/svg+xml" })
+  const url = URL.createObjectURL(svgBlob)
+
+  return new Promise((resolve, reject) => {
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, width, height)
+      URL.revokeObjectURL(url)
+      onProgress?.({ percent: 90, stage: "Encoding PNG..." })
+
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error("Canvas to blob failed"))
+        onProgress?.({ percent: 100, stage: "Done" })
+        resolve({
+          blob,
+          filename: filename.replace(/\.[^.]+$/, ".png"),
+          size: blob.size,
+          duration: performance.now() - start,
+        })
+      }, "image/png")
+    }
+    img.onerror = () => reject(new Error("Failed to load SVG into image"))
+    img.src = url
+  })
 }
 
 // --- svg2pdf (SVG to PDF) ---

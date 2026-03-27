@@ -169,7 +169,11 @@ export function getOutputFormats(inputMime: string): FormatGroup[] {
     }
   }
 
-  if (matchingCategories.size === 0) {
+  // Always include archive (any file can be compressed) and data formats
+  matchingCategories.add("archive")
+
+  if (matchingCategories.size <= 1) {
+    // If only archive matched, show everything
     return FORMAT_GROUPS
   }
 

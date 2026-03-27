@@ -1,0 +1,7 @@
+This is a plain text file for testing PDF conversion.
+
+It has multiple lines and paragraphs to ensure the converter handles
+text wrapping and page layout correctly.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua.
