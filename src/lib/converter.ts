@@ -45,10 +45,17 @@ export async function convert(
   // Smart routing: override engine based on input file type
   const inputExt = file.name.split(".").pop()?.toLowerCase() || ""
   const markupInputs = ["md", "markdown", "html", "htm", "rst", "tex", "txt"]
+
+  // PDF inputs: ImageMagick can't handle PDFs in WASM (needs Ghostscript). Use pdf.js instead.
+  if (inputExt === "pdf" && engine === "magick") {
+    engine = "pdfjs"
+  }
+
   if (engine === "mammoth" && !["docx", "doc"].includes(inputExt)) {
-    // Mammoth only handles DOCX. For other inputs targeting HTML/TXT, use pandoc
     if (markupInputs.includes(inputExt)) {
       engine = "pandoc"
+    } else if (inputExt === "pdf") {
+      engine = "pdfjs"
     } else {
       engine = "paged"
     }
@@ -59,6 +66,8 @@ export async function convert(
       return convertWithFFmpeg(file, outputFormat, options, onProgress)
     case "magick":
       return convertWithMagick(file, outputFormat, options, onProgress)
+    case "pdfjs":
+      return convertWithPdfJs(file, outputFormat, options, onProgress)
     case "resvg":
       return convertWithResvg(file, outputFormat, options, onProgress)
     case "svg2pdf":
@@ -215,6 +224,99 @@ async function convertWithMagick(
     size: (resultBlob as Blob).size,
     duration: performance.now() - start,
   }
+}
+
+// --- PDF.js (PDF to Image) ---
+
+async function convertWithPdfJs(
+  file: File,
+  outputFormat: FileFormat,
+  options: ConversionOptions,
+  onProgress?: ProgressCallback
+): Promise<ConversionResult> {
+  onProgress?.({ percent: 5, stage: "Loading PDF renderer..." })
+
+  const pdfjsLib = await import("pdfjs-dist")
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+
+  onProgress?.({ percent: 15, stage: "Reading PDF..." })
+
+  const buffer = await file.arrayBuffer()
+  const start = performance.now()
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise
+  const numPages = pdf.numPages
+
+  onProgress?.({ percent: 25, stage: `Rendering ${numPages} page${numPages > 1 ? "s" : ""}...` })
+
+  const scale = options.quality ? options.quality / 25 : 2 // default 2x scale (150dpi)
+  const outputMime = outputFormat.extension === ".png" ? "image/png" : "image/jpeg"
+  const jpegQuality = (options.quality || 85) / 100
+
+  if (numPages === 1) {
+    // Single page: render directly to target format
+    const pageBlob = await renderPdfPage(pdf, 1, scale, outputMime, jpegQuality)
+    onProgress?.({ percent: 100, stage: "Done" })
+    return {
+      blob: pageBlob,
+      filename: file.name.replace(/\.[^.]+$/, outputFormat.extension),
+      size: pageBlob.size,
+      duration: performance.now() - start,
+    }
+  }
+
+  // Multiple pages: render all and zip them
+  onProgress?.({ percent: 30, stage: "Rendering pages..." })
+  const { zipSync } = await import("fflate")
+  const files: Record<string, Uint8Array> = {}
+
+  for (let i = 1; i <= numPages; i++) {
+    onProgress?.({ percent: 30 + Math.round((i / numPages) * 60), stage: `Rendering page ${i}/${numPages}...` })
+    const pageBlob = await renderPdfPage(pdf, i, scale, outputMime, jpegQuality)
+    const pageBuf = new Uint8Array(await pageBlob.arrayBuffer())
+    const pageName = `page-${String(i).padStart(3, "0")}${outputFormat.extension}`
+    files[pageName] = pageBuf
+  }
+
+  onProgress?.({ percent: 95, stage: "Creating archive..." })
+  const zipData = zipSync(files)
+  const blob = new Blob([zipData as BlobPart], { type: "application/zip" })
+
+  onProgress?.({ percent: 100, stage: "Done" })
+  return {
+    blob,
+    filename: file.name.replace(/\.[^.]+$/, `-pages.zip`),
+    size: blob.size,
+    duration: performance.now() - start,
+  }
+}
+
+async function renderPdfPage(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pdf: any,
+  pageNum: number,
+  scale: number,
+  mime: string,
+  quality: number
+): Promise<Blob> {
+  const page = await pdf.getPage(pageNum)
+  const viewport = page.getViewport({ scale })
+  const canvas = document.createElement("canvas")
+  canvas.width = viewport.width
+  canvas.height = viewport.height
+  const ctx = canvas.getContext("2d")!
+
+  await page.render({ canvasContext: ctx, viewport }).promise
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return reject(new Error("Failed to render PDF page"))
+        resolve(blob)
+      },
+      mime,
+      quality
+    )
+  })
 }
 
 // --- SVG to PNG (Canvas API with resvg-wasm fallback) ---
