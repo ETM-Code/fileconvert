@@ -217,7 +217,7 @@ export default function Home() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex w-full max-w-2xl flex-col items-center px-6 pt-[4vh] pb-20">
+      <main className="relative z-10 flex min-h-screen w-full max-w-2xl flex-col items-center justify-center px-6 pb-20">
         {/* Logo (front and centre) */}
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
