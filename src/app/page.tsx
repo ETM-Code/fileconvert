@@ -202,8 +202,15 @@ export default function Home() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        className="relative z-10 flex w-full items-center justify-end px-6 pt-6 pb-4 sm:px-10"
+        className="relative z-10 flex w-full items-center justify-between px-6 pt-6 pb-4 sm:px-10"
       >
+        <a
+          href="https://eltrus.net"
+          className="flex items-center gap-1.5 text-[13px] font-medium text-[#999] transition-colors hover:text-[#555]"
+        >
+          <ArrowRight className="size-3 rotate-180" />
+          more by Eltrus
+        </a>
         <Badge variant="outline" className="text-[10px] font-medium tracking-wider uppercase text-muted-foreground">
           100% Client-side
         </Badge>
@@ -218,7 +225,7 @@ export default function Home() {
           transition={{ duration: 0.7, delay: 0.05, ease: [0.23, 1, 0.32, 1] }}
           className="mb-8"
         >
-          <img src="/logo.svg" alt="FileConvert" className="h-40 w-auto sm:h-52" />
+          <img src="/logo.svg" alt="FileConvert" className="h-48 w-auto sm:h-64" />
         </motion.div>
 
         {/* Drop Zone */}
@@ -339,7 +346,7 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-5 text-center text-[14px] font-medium tracking-[-0.01em] text-[#1A1A1A]"
+          className="mt-5 text-center text-[20px] font-semibold tracking-[-0.02em] text-[#1A1A1A] font-[family-name:var(--font-bricolage-grotesque)] sm:text-[24px]"
         >
           Convert anything. <span className="text-[#999]">Right here in your browser.</span>
         </motion.p>

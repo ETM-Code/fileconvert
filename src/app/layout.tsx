@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { DM_Sans, JetBrains_Mono, Bricolage_Grotesque, Figtree, Fira_Code } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const firaCodeFiraCode = Fira_Code({subsets:['cyrillic','cyrillic-ext','greek','greek-ext','latin','latin-ext','symbols2'],weight:['300','400','500','600','700'],variable:'--font-fira-code'});
+
+const figtreeFigtree = Figtree({subsets:['latin','latin-ext'],weight:['300','400','500','600','700','800','900'],variable:'--font-figtree'});
+
+const bricolageGrotesqueBricolageGrotesque = Bricolage_Grotesque({subsets:['latin','latin-ext','vietnamese'],weight:['200','300','400','500','600','700','800'],variable:'--font-bricolage-grotesque'});
 
 const dmSans = DM_Sans({
   variable: "--font-sans",
@@ -27,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", dmSans.variable, jetbrainsMono.variable, bricolageGrotesqueBricolageGrotesque.variable, figtreeFigtree.variable, firaCodeFiraCode.variable)}
     >
       <body className="min-h-full flex flex-col">
         {children}
