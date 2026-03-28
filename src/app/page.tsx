@@ -206,7 +206,7 @@ export default function Home() {
       >
         <a
           href="https://eltrus.net"
-          className="flex items-center gap-1.5 text-[13px] font-medium text-[#999] transition-colors hover:text-[#555]"
+          className="flex items-center gap-1.5 rounded-lg border border-[#E5E5E0] bg-white px-3 py-1.5 text-[12px] font-semibold text-[#555] shadow-sm transition-all hover:border-[#D0D0CB] hover:text-[#1A1A1A] hover:shadow-md"
         >
           <ArrowRight className="size-3 rotate-180" />
           more by Eltrus
