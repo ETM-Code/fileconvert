@@ -26,6 +26,7 @@ import {
   RotateCcw,
   Minimize2,
 } from "lucide-react"
+import Showcase from "@/components/showcase"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -616,15 +617,8 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="relative z-10 w-full py-6 text-center text-[12px] text-[#666]"
-      >
-        Your files never leave your browser. All processing happens locally via WebAssembly.
-      </motion.footer>
+      {/* Showcase sections */}
+      <Showcase />
     </div>
   )
 }
