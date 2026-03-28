@@ -217,7 +217,7 @@ export default function Home() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex min-h-screen w-full max-w-2xl flex-col items-center justify-center px-6 pb-20">
+      <main className="relative z-10 flex min-h-screen w-full max-w-3xl flex-col items-center justify-center px-6 pb-20">
         {/* Logo (front and centre) */}
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -225,7 +225,7 @@ export default function Home() {
           transition={{ duration: 0.7, delay: 0.05, ease: [0.23, 1, 0.32, 1] }}
           className="mb-8"
         >
-          <img src="/logo.svg" alt="FileConvert" className="h-48 w-auto sm:h-64" />
+          <img src="/logo.svg" alt="FileConvert" className="h-52 w-auto sm:h-72" />
         </motion.div>
 
         {/* Drop Zone */}
@@ -263,7 +263,7 @@ export default function Home() {
                 scale: isDragOver ? 1.02 : 1,
               }}
               transition={{ duration: 0.2, scale: { type: "spring", stiffness: 300, damping: 25 } }}
-              className={`relative flex min-h-[200px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-8 backdrop-blur-sm transition-shadow ${!file ? "cursor-pointer hover:border-[#C0C0BA] hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)]" : ""}`}
+              className={`relative flex min-h-[240px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-10 backdrop-blur-sm transition-shadow ${!file ? "cursor-pointer hover:border-[#C0C0BA] hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)]" : ""}`}
             >
               <AnimatePresence mode="wait">
                 {!file ? (
@@ -286,10 +286,10 @@ export default function Home() {
                       <Upload className="size-6 text-[#777]" />
                     </motion.div>
                     <div className="text-center">
-                      <p className="text-[16px] font-medium text-[#333]">
+                      <p className="text-[18px] font-medium text-[#333]">
                         Drop a file here, or click to browse
                       </p>
-                      <p className="mt-1.5 text-[13px] text-[#999]">
+                      <p className="mt-1.5 text-[14px] text-[#999]">
                         Video, audio, images, documents, spreadsheets, and more
                       </p>
                     </div>
@@ -346,7 +346,7 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-5 text-center text-[20px] font-semibold tracking-[-0.02em] text-[#1A1A1A] font-[family-name:var(--font-bricolage-grotesque)] sm:text-[24px]"
+          className="mt-6 text-center text-[22px] font-semibold tracking-[-0.02em] text-[#1A1A1A] font-[family-name:var(--font-bricolage-grotesque)] sm:text-[28px]"
         >
           Convert anything. <span className="text-[#999]">Right here in your browser.</span>
         </motion.p>
