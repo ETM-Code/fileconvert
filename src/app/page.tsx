@@ -22,7 +22,7 @@ import {
   Braces,
   BookOpen,
   ChevronDown,
-  Sparkles,
+
   Loader2,
   RotateCcw,
 } from "lucide-react"
@@ -203,12 +203,10 @@ export default function Home() {
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
         className="relative z-10 flex w-full items-center justify-between px-6 pt-8 pb-4 sm:px-10"
       >
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-md bg-[#1A1A1A]">
-            <Sparkles className="size-3.5 text-amber-400" />
-          </div>
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.svg" alt="FileConvert" className="h-8 w-auto" />
           <span className="text-[15px] font-semibold tracking-[-0.01em] text-[#1A1A1A]">
-            Convertify
+            FileConvert
           </span>
         </div>
 

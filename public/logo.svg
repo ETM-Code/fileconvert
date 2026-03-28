@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+<defs>
+<!-- Background Glow Filter -->
+<radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#A855F7" stop-opacity="0.15" />
+<stop offset="100%" stop-color="#040814" stop-opacity="0" />
+</radialGradient>
+
+<!-- Arrow Path Blur for Glowing Effect -->
+<filter id="glowBlur" x="-20%" y="-20%" width="140%" height="140%">
+  <feGaussianBlur stdDeviation="8" />
+</filter>
+
+<!-- Front Arc Gradient (Blue to Pink) -->
+<linearGradient id="frontGrad" x1="190" y1="0" x2="610" y2="0" gradientUnits="userSpaceOnUse">
+  <stop offset="0%" stop-color="#38BDF8" />
+  <stop offset="50%" stop-color="#8B5CF6" />
+  <stop offset="100%" stop-color="#EC4899" />
+</linearGradient>
+
+<!-- Back Arc Gradient (Pink to Blue) -->
+<linearGradient id="backGrad" x1="610" y1="0" x2="190" y2="0" gradientUnits="userSpaceOnUse">
+  <stop offset="0%" stop-color="#EC4899" />
+  <stop offset="50%" stop-color="#8B5CF6" />
+  <stop offset="100%" stop-color="#38BDF8" />
+</linearGradient>
+
+<!-- Left File Gradients (Document/Text) -->
+<linearGradient id="leftFileBg" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="#1E293B" stop-opacity="0.95" />
+  <stop offset="100%" stop-color="#0F172A" stop-opacity="0.95" />
+</linearGradient>
+<linearGradient id="leftFileBorder" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0%" stop-color="#38BDF8" />
+  <stop offset="100%" stop-color="#6366F1" />
+</linearGradient>
+
+<!-- Right File Gradients (Media/Image) -->
+<linearGradient id="rightFileBg" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="#1E293B" stop-opacity="0.95" />
+  <stop offset="100%" stop-color="#0F172A" stop-opacity="0.95" />
+</linearGradient>
+<linearGradient id="rightFileBorder" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0%" stop-color="#EC4899" />
+  <stop offset="100%" stop-color="#F59E0B" />
+</linearGradient>
+
+<!-- Text Gradient -->
+<linearGradient id="textGrad" x1="400" y1="0" x2="600" y2="0" gradientUnits="userSpaceOnUse">
+  <stop offset="0%" stop-color="#38BDF8" />
+  <stop offset="50%" stop-color="#A855F7" />
+  <stop offset="100%" stop-color="#EC4899" />
+</linearGradient>
+
+<!-- Sparkle Shape -->
+<path id="sparkle" d="M 0,-10 Q 0,0 10,0 Q 0,0 0,10 Q 0,0 -10,0 Q 0,0 0,-10 Z" />
+</defs>
+
+<!-- Central Soft Magic Glow -->
+<circle cx="400" cy="220" r="260" fill="url(#bgGlow)" />
+
+<!-- ================= BACK ARC (Behind Files) ================= -->
+
+<!-- Back Arc Glow -->
+<path d="M 610, 210 C 560, 130 240, 130 190, 210"
+transform="rotate(-15, 400, 220)"
+stroke="url(#backGrad)" stroke-width="24" fill="none"
+opacity="0.3" filter="url(#glowBlur)" stroke-linecap="round" />
+
+<!-- Back Arc Core Path -->
+<path d="M 610, 210 C 560, 130 240, 130 190, 210"
+transform="rotate(-15, 400, 220)"
+stroke="url(#backGrad)" stroke-width="12" fill="none" stroke-linecap="butt" />
+
+<!-- Back Arc Arrowhead -->
+<g transform="rotate(-15, 400, 220) translate(190, 210) rotate(122)">
+<polygon points="-16,-16 16,0 -16,16" fill="#38BDF8" />
+</g>
+
+<!-- Sparkles (Background) -->
+<use href="#sparkle" transform="translate(240, 110) scale(0.8)" fill="#38BDF8" opacity="0.6" />
+<use href="#sparkle" transform="translate(580, 140) scale(0.6)" fill="#FBBF24" opacity="0.7" />
+
+<!-- ================= LEFT FILE (Document / Text) ================= -->
+
+<g transform="translate(360, 220) rotate(-8)">
+<!-- Main File Body -->
+<path d="M -45,-75 L 25,-75 L 55,-45 L 55,65 A 10,10 0 0 1 45,75 L -45,75 A 10,10 0 0 1 -55,65 L -55,-65 A 10,10 0 0 1 -45,-75 Z"
+fill="url(#leftFileBg)" stroke="url(#leftFileBorder)" stroke-width="2.5" />
+
+<!-- Folded Corner -->
+<path d="M 25,-75 L 25,-49 A 4,4 0 0 0 29,-45 L 55,-45 Z"
+      fill="#334155" stroke="url(#leftFileBorder)" stroke-width="2.5" stroke-linejoin="round" />
+
+<!-- Browser App Dots -->
+<circle cx="-35" cy="-60" r="3" fill="#EF4444" opacity="0.9" />
+<circle cx="-25" cy="-60" r="3" fill="#FBBF24" opacity="0.9" />
+<circle cx="-15" cy="-60" r="3" fill="#10B981" opacity="0.9" />
+
+<!-- Document Lines Icon -->
+<rect x="-25" y="-15" width="50" height="6" rx="3" fill="#38BDF8" opacity="0.9" />
+<rect x="-25" y="0" width="35" height="6" rx="3" fill="#38BDF8" opacity="0.9" />
+<rect x="-25" y="15" width="45" height="6" rx="3" fill="#38BDF8" opacity="0.9" />
+<rect x="-25" y="30" width="20" height="6" rx="3" fill="#38BDF8" opacity="0.9" />
+</g>
+
+<!-- ================= RIGHT FILE (Media / Image) ================= -->
+
+<g transform="translate(440, 220) rotate(8)">
+<!-- Main File Body -->
+<path d="M -45,-75 L 25,-75 L 55,-45 L 55,65 A 10,10 0 0 1 45,75 L -45,75 A 10,10 0 0 1 -55,65 L -55,-65 A 10,10 0 0 1 -45,-75 Z"
+fill="url(#rightFileBg)" stroke="url(#rightFileBorder)" stroke-width="2.5" />
+
+<!-- Folded Corner -->
+<path d="M 25,-75 L 25,-49 A 4,4 0 0 0 29,-45 L 55,-45 Z"
+      fill="#334155" stroke="url(#rightFileBorder)" stroke-width="2.5" stroke-linejoin="round" />
+
+<!-- Browser App Dots -->
+<circle cx="-35" cy="-60" r="3" fill="#EF4444" opacity="0.9" />
+<circle cx="-25" cy="-60" r="3" fill="#FBBF24" opacity="0.9" />
+<circle cx="-15" cy="-60" r="3" fill="#10B981" opacity="0.9" />
+
+<!-- Image / Mountain Icon -->
+<rect x="-25" y="-15" width="50" height="40" rx="4" fill="none" stroke="#EC4899" stroke-width="3" opacity="0.9" />
+<path d="M -25,25 L -10,4 L 5,25 Z" fill="#EC4899" opacity="0.9" />
+<path d="M -5,25 L 10,9 L 25,25 Z" fill="#F472B6" opacity="0.8" />
+<circle cx="12" cy="0" r="5" fill="#FBBF24" opacity="0.9" />
+</g>
+
+<!-- ================= FRONT ARC (In Front of Files) ================= -->
+
+<!-- Front Arc Glow -->
+<path d="M 190, 230 C 240, 310 560, 310 610, 230"
+transform="rotate(-15, 400, 220)"
+stroke="url(#frontGrad)" stroke-width="24" fill="none"
+opacity="0.3" filter="url(#glowBlur)" stroke-linecap="round" />
+
+<!-- Front Arc Core Path -->
+<path d="M 190, 230 C 240, 310 560, 310 610, 230"
+transform="rotate(-15, 400, 220)"
+stroke="url(#frontGrad)" stroke-width="12" fill="none" stroke-linecap="butt" />
+
+<!-- Front Arc Arrowhead -->
+<g transform="rotate(-15, 400, 220) translate(610, 230) rotate(-58)">
+<polygon points="-16,-16 16,0 -16,16" fill="#EC4899" />
+</g>
+
+<!-- Sparkles (Foreground) -->
+<use href="#sparkle" transform="translate(560, 330) scale(1.1)" fill="#EC4899" opacity="0.9" />
+<use href="#sparkle" transform="translate(400, 160) scale(0.6)" fill="#A855F7" opacity="0.8" />
+<use href="#sparkle" transform="translate(210, 290) scale(0.5)" fill="#6366F1" opacity="0.7" />
+
+<!-- ================= TYPOGRAPHY ================= -->
+
+<text x="400" y="450" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="52" font-weight="800" letter-spacing="0.5">
+<tspan fill="#FFFFFF">File</tspan><tspan fill="url(#textGrad)">Convert</tspan>
+</text>
+
+<text x="400" y="495" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="500" letter-spacing="3" fill="#E2E8F0">
+by Eltrus
+</text>
+</svg>

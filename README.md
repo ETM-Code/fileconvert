@@ -1,4 +1,4 @@
-# Convertify
+# FileConvert
 
 A universal file converter that runs entirely in your browser. No uploads. No servers. No subscriptions.
 
@@ -8,7 +8,7 @@ Every time you need to convert a file, you end up on some site that wants you to
 
 And the privacy situation is absurd. You're sending your files (your documents, your photos, your audio) to a random server. You have no idea what happens to them after. "We delete your files after 24 hours." Sure. You also said you wouldn't sell my email.
 
-Convertify doesn't do any of that. Every conversion runs client-side via WebAssembly. Your files never leave your browser. There's no server receiving your data, because there's no server. It's just your machine doing the work.
+FileConvert doesn't do any of that. Every conversion runs client-side via WebAssembly. Your files never leave your browser. There's no server receiving your data, because there's no server. It's just your machine doing the work.
 
 ## What it converts
 
