@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="280 120 240 240" width="32" height="32">
+<defs>
+<linearGradient id="fg" x1="190" y1="0" x2="610" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#38BDF8"/><stop offset="50%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#EC4899"/></linearGradient>
+<linearGradient id="bg2" x1="610" y1="0" x2="190" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#EC4899"/><stop offset="50%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#38BDF8"/></linearGradient>
+<linearGradient id="lb" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#6366F1"/></linearGradient>
+<linearGradient id="rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#EC4899"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient>
+</defs>
+<!-- Back arc -->
+<path d="M 610,210 C 560,130 240,130 190,210" transform="rotate(-15,400,220)" stroke="url(#bg2)" stroke-width="10" fill="none" stroke-linecap="butt"/>
+<g transform="rotate(-15,400,220) translate(190,210) rotate(122)"><polygon points="-12,-12 12,0 -12,12" fill="#38BDF8"/></g>
+<!-- Left file -->
+<g transform="translate(360,220) rotate(-8)">
+<path d="M -35,-60 L 20,-60 L 45,-35 L 45,52 A 8,8 0 0 1 37,60 L -35,60 A 8,8 0 0 1 -43,52 L -43,-52 A 8,8 0 0 1 -35,-60 Z" fill="#FFFFFF" stroke="url(#lb)" stroke-width="3"/>
+<rect x="-18" y="-12" width="36" height="5" rx="2.5" fill="#38BDF8" opacity="0.8"/>
+<rect x="-18" y="0" width="26" height="5" rx="2.5" fill="#38BDF8" opacity="0.8"/>
+<rect x="-18" y="12" width="32" height="5" rx="2.5" fill="#38BDF8" opacity="0.8"/>
+</g>
+<!-- Right file -->
+<g transform="translate(440,220) rotate(8)">
+<path d="M -35,-60 L 20,-60 L 45,-35 L 45,52 A 8,8 0 0 1 37,60 L -35,60 A 8,8 0 0 1 -43,52 L -43,-52 A 8,8 0 0 1 -35,-60 Z" fill="#FFFFFF" stroke="url(#rb)" stroke-width="3"/>
+<rect x="-18" y="-12" width="36" height="30" rx="3" fill="none" stroke="#EC4899" stroke-width="2.5" opacity="0.8"/>
+<path d="M -18,18 L -6,-2 L 4,18 Z" fill="#EC4899" opacity="0.8"/>
+<path d="M 0,18 L 10,4 L 18,18 Z" fill="#F472B6" opacity="0.7"/>
+<circle cx="10" cy="-4" r="4" fill="#FBBF24" opacity="0.8"/>
+</g>
+<!-- Front arc -->
+<path d="M 190,230 C 240,310 560,310 610,230" transform="rotate(-15,400,220)" stroke="url(#fg)" stroke-width="10" fill="none" stroke-linecap="butt"/>
+<g transform="rotate(-15,400,220) translate(610,230) rotate(-58)"><polygon points="-12,-12 12,0 -12,12" fill="#EC4899"/></g>
+</svg>
