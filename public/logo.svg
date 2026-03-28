@@ -156,7 +156,7 @@ stroke="url(#frontGrad)" stroke-width="12" fill="none" stroke-linecap="butt" />
 <tspan fill="#0F172A">File</tspan><tspan fill="url(#textGrad)">Convert</tspan>
 </text>
 
-<text x="400" y="495" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="500" letter-spacing="3" fill="#64748B">
+<text x="400" y="495" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="500" letter-spacing="3" fill="#334155">
 by Eltrus
 </text>
 </svg>

@@ -225,7 +225,7 @@ export default function Home() {
           transition={{ duration: 0.7, delay: 0.05, ease: [0.23, 1, 0.32, 1] }}
           className="mb-8"
         >
-          <img src="/logo.svg" alt="FileConvert" className="h-52 w-auto sm:h-72" />
+          <img src="/logo.svg?v=2" alt="FileConvert" className="h-52 w-auto sm:h-72" />
         </motion.div>
 
         {/* Drop Zone */}

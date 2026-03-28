@@ -277,7 +277,7 @@ function SectionPrivacy() {
 function ShowcaseFooter() {
   return (
     <footer className="text-center py-24 px-8 border-t border-[#E2E8F0] bg-[#F8FAFC]">
-      <img src="/logo.svg" alt="FileConvert" className="mx-auto h-44 w-auto mb-4" />
+      <img src="/logo.svg?v=2" alt="FileConvert" className="mx-auto h-44 w-auto mb-4" />
       <a href="https://eltrus.net" className="text-[#EC4899] no-underline font-extrabold text-[1.1rem] tracking-[2px]">by Eltrus</a>
     </footer>
   )
