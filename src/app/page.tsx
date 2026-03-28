@@ -22,9 +22,9 @@ import {
   Braces,
   BookOpen,
   ChevronDown,
-
   Loader2,
   RotateCcw,
+  Minimize2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -76,6 +76,7 @@ const CATEGORY_ICONS: Record<FormatCategory, React.ReactNode> = {
   "3d": <Box className="size-3.5" />,
   vector: <PenTool className="size-3.5" />,
   data: <Braces className="size-3.5" />,
+  compress: <Minimize2 className="size-3.5" />,
 }
 
 type AppState = "idle" | "file-selected" | "converting" | "done" | "error"
@@ -174,7 +175,6 @@ export default function Home() {
     if (fileInputRef.current) fileInputRef.current.value = ""
   }, [])
 
-  // Auto-open format picker after file drop
   useEffect(() => {
     if (state === "file-selected" && !selectedFormat) {
       const timer = setTimeout(() => setFormatPickerOpen(true), 400)
@@ -187,7 +187,7 @@ export default function Home() {
   const showResult = state === "done" && result
 
   return (
-    <div className="flex flex-1 flex-col items-center bg-[#FAFAF9]">
+    <div className="flex min-h-full flex-col items-center bg-[#FAFAF9]">
       {/* Subtle grain texture */}
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.03]"
@@ -201,36 +201,23 @@ export default function Home() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        className="relative z-10 flex w-full items-center justify-between px-6 pt-8 pb-4 sm:px-10"
+        className="relative z-10 flex w-full items-center justify-end px-6 pt-6 pb-4 sm:px-10"
       >
-        <div className="flex items-center gap-2.5">
-          <img src="/logo.svg" alt="FileConvert" className="h-8 w-auto" />
-          <span className="text-[15px] font-semibold tracking-[-0.01em] text-[#1A1A1A]">
-            FileConvert
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Badge variant="outline" className="text-[10px] font-medium tracking-wider uppercase text-muted-foreground">
-            100% Client-side
-          </Badge>
-        </div>
+        <Badge variant="outline" className="text-[10px] font-medium tracking-wider uppercase text-muted-foreground">
+          100% Client-side
+        </Badge>
       </motion.header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex w-full max-w-2xl flex-1 flex-col items-center px-6 pt-[12vh] pb-20">
-        {/* Tagline */}
+      <main className="relative z-10 flex w-full max-w-2xl flex-col items-center px-6 pt-[4vh] pb-20">
+        {/* Logo (front and centre) */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-          className="mb-10 text-center"
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, delay: 0.05, ease: [0.23, 1, 0.32, 1] }}
+          className="mb-8"
         >
-          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[#1A1A1A] sm:text-[34px]">
-            Convert anything.
-            <br />
-            <span className="text-[#999]">Right here in your browser.</span>
-          </h1>
+          <img src="/logo.svg" alt="FileConvert" className="h-40 w-auto sm:h-52" />
         </motion.div>
 
         {/* Drop Zone */}
@@ -258,16 +245,17 @@ export default function Home() {
             <motion.div
               animate={{
                 borderColor: isDragOver
-                  ? "rgb(217, 163, 30)"
+                  ? "rgb(139, 92, 246)"
                   : file
                     ? "rgb(229, 229, 224)"
                     : "rgb(214, 214, 209)",
                 backgroundColor: isDragOver
-                  ? "rgba(229, 160, 0, 0.03)"
+                  ? "rgba(139, 92, 246, 0.04)"
                   : "rgba(255, 255, 255, 0.8)",
+                scale: isDragOver ? 1.02 : 1,
               }}
-              transition={{ duration: 0.2 }}
-              className={`relative flex min-h-[180px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-8 backdrop-blur-sm transition-shadow ${!file ? "cursor-pointer hover:shadow-[0_2px_20px_rgba(0,0,0,0.04)]" : ""}`}
+              transition={{ duration: 0.2, scale: { type: "spring", stiffness: 300, damping: 25 } }}
+              className={`relative flex min-h-[200px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-8 backdrop-blur-sm transition-shadow ${!file ? "cursor-pointer hover:border-[#C0C0BA] hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)]" : ""}`}
             >
               <AnimatePresence mode="wait">
                 {!file ? (
@@ -276,24 +264,25 @@ export default function Home() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="flex flex-col items-center gap-4"
+                    className="flex flex-col items-center gap-5"
                   >
                     <motion.div
                       animate={{
-                        y: isDragOver ? -6 : 0,
-                        scale: isDragOver ? 1.1 : 1,
+                        y: isDragOver ? -8 : 0,
+                        scale: isDragOver ? 1.15 : 1,
+                        rotate: isDragOver ? -5 : 0,
                       }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                      className="flex size-14 items-center justify-center rounded-xl bg-[#F0F0ED] transition-colors group-hover:bg-[#E8E8E3]"
+                      className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F0F0ED] to-[#E8E8E3] shadow-sm transition-colors group-hover:from-[#E8E8E3] group-hover:to-[#DDDDD8]"
                     >
-                      <Upload className="size-5 text-[#888]" />
+                      <Upload className="size-6 text-[#777]" />
                     </motion.div>
                     <div className="text-center">
-                      <p className="text-[15px] font-medium text-[#444]">
-                        Drop a file here
+                      <p className="text-[16px] font-medium text-[#333]">
+                        Drop a file here, or click to browse
                       </p>
-                      <p className="mt-1 text-[13px] text-[#999]">
-                        or click to browse. Video, audio, images, documents, and more.
+                      <p className="mt-1.5 text-[13px] text-[#999]">
+                        Video, audio, images, documents, spreadsheets, and more
                       </p>
                     </div>
                   </motion.div>
@@ -305,11 +294,16 @@ export default function Home() {
                     exit={{ opacity: 0, y: -10 }}
                     className="flex w-full items-center gap-4"
                   >
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#F0F0ED]">
-                      <FileIcon className="size-5 text-[#666]" />
-                    </div>
+                    <motion.div
+                      initial={{ scale: 0.8, rotate: -10 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                      className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#F0F0ED] to-[#E8E8E3]"
+                    >
+                      <FileIcon className="size-6 text-[#555]" />
+                    </motion.div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-medium text-[#1A1A1A]">
+                      <p className="truncate text-[16px] font-medium text-[#1A1A1A]">
                         {file.name}
                       </p>
                       <p className="mt-0.5 text-[13px] text-[#999]">
@@ -339,6 +333,16 @@ export default function Home() {
           </div>
         </motion.div>
 
+        {/* Tagline (below drop zone) */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-5 text-center text-[14px] font-medium tracking-[-0.01em] text-[#1A1A1A]"
+        >
+          Convert anything. <span className="text-[#999]">Right here in your browser.</span>
+        </motion.p>
+
         {/* Format Picker + Convert */}
         <AnimatePresence>
           {showControls && (
@@ -348,7 +352,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-              className="mt-4 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center"
+              className="mt-5 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center"
             >
               <Popover open={formatPickerOpen} onOpenChange={setFormatPickerOpen}>
                 <PopoverTrigger
@@ -571,7 +575,40 @@ export default function Home() {
             {!selectedFormat && (
               <p className="text-[13px] text-[#999]">Select an output format first to see available settings.</p>
             )}
-            {selectedFormat && !["ffmpeg", "magick"].includes(selectedFormat.engine) && (
+            {selectedFormat?.engine === "magick-compress" && (
+              <label className="flex flex-col gap-1">
+                <span className="text-[12px] font-medium text-[#666]">Quality (1-100, lower = smaller file)</span>
+                <Input
+                  type="number"
+                  min={1}
+                  max={100}
+                  placeholder="75"
+                  value={options.quality || ""}
+                  onChange={(e) => setOptions({ ...options, quality: Number(e.target.value) })}
+                />
+              </label>
+            )}
+            {selectedFormat?.engine === "ffmpeg-compress" && (
+              <>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[12px] font-medium text-[#666]">Video Bitrate (override)</span>
+                  <Input
+                    placeholder="e.g. 500k"
+                    value={options.videoBitrate || ""}
+                    onChange={(e) => setOptions({ ...options, videoBitrate: e.target.value })}
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[12px] font-medium text-[#666]">Audio Bitrate (override)</span>
+                  <Input
+                    placeholder="e.g. 96k"
+                    value={options.audioBitrate || ""}
+                    onChange={(e) => setOptions({ ...options, audioBitrate: e.target.value })}
+                  />
+                </label>
+              </>
+            )}
+            {selectedFormat && !["ffmpeg", "magick", "magick-compress", "ffmpeg-compress", "pdf-compress"].includes(selectedFormat.engine) && (
               <p className="text-[13px] text-[#999]">No additional settings for {selectedFormat.name} conversion.</p>
             )}
           </div>
@@ -584,7 +621,7 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
-        className="relative z-10 w-full py-6 text-center text-[11px] text-[#BBB]"
+        className="relative z-10 w-full py-6 text-center text-[12px] text-[#666]"
       >
         Your files never leave your browser. All processing happens locally via WebAssembly.
       </motion.footer>

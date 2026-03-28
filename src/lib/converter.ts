@@ -88,6 +88,12 @@ export async function convert(
       return convertNative(file, outputFormat, options, onProgress)
     case "paged":
       return convertWithPaged(file, outputFormat, options, onProgress)
+    case "magick-compress":
+      return compressWithMagick(file, outputFormat, options, onProgress)
+    case "ffmpeg-compress":
+      return compressWithFFmpeg(file, outputFormat, options, onProgress)
+    case "pdf-compress":
+      return compressWithPdfJs(file, outputFormat, options, onProgress)
     default:
       throw new Error(`Unsupported engine: ${engine}`)
   }
@@ -847,4 +853,209 @@ function jsonToToml(data: unknown): string {
     }
   }
   return lines.join("\n")
+}
+
+// --- Image Compression (ImageMagick) ---
+
+async function compressWithMagick(
+  file: File,
+  outputFormat: FileFormat,
+  options: ConversionOptions,
+  onProgress?: ProgressCallback
+): Promise<ConversionResult> {
+  onProgress?.({ percent: 5, stage: "Loading ImageMagick..." })
+
+  const { ImageMagick, initializeImageMagick, MagickFormat } = await import("@imagemagick/magick-wasm")
+  const wasmUrl = new URL("https://unpkg.com/@imagemagick/magick-wasm@0.0.39/dist/magick.wasm")
+  await initializeImageMagick(wasmUrl)
+
+  onProgress?.({ percent: 20, stage: "Reading image..." })
+
+  const buffer = await file.arrayBuffer()
+  const inputData = new Uint8Array(buffer)
+  const start = performance.now()
+
+  const formatMap: Record<string, typeof MagickFormat[keyof typeof MagickFormat]> = {
+    ".jpg": MagickFormat.Jpeg,
+    ".webp": MagickFormat.WebP,
+    ".png": MagickFormat.Png,
+  }
+  const magickFormat = formatMap[outputFormat.extension] || MagickFormat.Jpeg
+
+  let quality = options.quality || 75
+  if (outputFormat.id === "compress-webp") quality = options.quality || 70
+  if (outputFormat.id === "compress-png") quality = 100
+
+  onProgress?.({ percent: 40, stage: `Compressing (quality: ${quality})...` })
+
+  let resultBlob: Blob | null = null
+
+  ImageMagick.read(inputData, (image) => {
+    image.strip()
+    image.quality = quality
+
+    if (options.width && options.height) {
+      image.resize(options.width, options.height)
+    } else if (options.width) {
+      const ratio = options.width / image.width
+      image.resize(options.width, Math.round(image.height * ratio))
+    }
+
+    image.write(magickFormat, (data) => {
+      resultBlob = new Blob([data as BlobPart], { type: outputFormat.mime })
+    })
+  })
+
+  onProgress?.({ percent: 100, stage: "Done" })
+
+  if (!resultBlob) throw new Error("Compression failed")
+
+  return {
+    blob: resultBlob,
+    filename: file.name.replace(/\.[^.]+$/, outputFormat.extension),
+    size: (resultBlob as Blob).size,
+    duration: performance.now() - start,
+  }
+}
+
+// --- Video/Audio Compression (FFmpeg) ---
+
+async function compressWithFFmpeg(
+  file: File,
+  outputFormat: FileFormat,
+  options: ConversionOptions,
+  onProgress?: ProgressCallback
+): Promise<ConversionResult> {
+  onProgress?.({ percent: 5, stage: "Loading FFmpeg..." })
+
+  if (!ffmpegInstance) {
+    ffmpegInstance = await loadFFmpeg()
+  }
+  const ffmpeg = ffmpegInstance
+
+  onProgress?.({ percent: 20, stage: "Reading file..." })
+
+  const inputName = `input_${Date.now()}.${file.name.split(".").pop()}`
+  const outputName = `output_${Date.now()}${outputFormat.extension}`
+
+  const { fetchFile } = await import("@ffmpeg/util")
+  await ffmpeg.writeFile(inputName, await fetchFile(file))
+
+  onProgress?.({ percent: 30, stage: "Compressing..." })
+
+  const args: string[] = ["-i", inputName]
+
+  switch (outputFormat.id) {
+    case "compress-mp4-low":
+      args.push("-c:v", "libx264", "-crf", "28", "-preset", "fast", "-c:a", "aac", "-b:a", "96k")
+      break
+    case "compress-mp4-med":
+      args.push("-c:v", "libx264", "-crf", "23", "-preset", "medium", "-c:a", "aac", "-b:a", "128k")
+      break
+    case "compress-mp4-small":
+      args.push("-vf", "scale=-2:720", "-c:v", "libx264", "-crf", "24", "-preset", "fast", "-c:a", "aac", "-b:a", "96k")
+      break
+    case "compress-webm":
+      args.push("-c:v", "libvpx-vp9", "-crf", "30", "-b:v", "0", "-c:a", "libopus", "-b:a", "96k")
+      break
+    case "compress-mp3-128":
+      args.push("-c:a", "libmp3lame", "-b:a", "128k", "-vn")
+      break
+    case "compress-mp3-64":
+      args.push("-c:a", "libmp3lame", "-b:a", "64k", "-vn")
+      break
+    case "compress-opus":
+      args.push("-c:a", "libopus", "-b:a", "64k", "-vn")
+      break
+    default:
+      args.push("-c:v", "libx264", "-crf", "23", "-preset", "fast")
+  }
+
+  if (options.videoBitrate) args.push("-b:v", options.videoBitrate)
+  if (options.audioBitrate) args.push("-b:a", options.audioBitrate)
+  if (options.resolution) args.push("-s", options.resolution)
+
+  args.push(outputName)
+
+  const start = performance.now()
+  await ffmpeg.exec(args)
+
+  onProgress?.({ percent: 90, stage: "Finalizing..." })
+
+  const data = await ffmpeg.readFile(outputName)
+  const blob = new Blob([data as BlobPart], { type: outputFormat.mime })
+
+  await ffmpeg.deleteFile(inputName)
+  await ffmpeg.deleteFile(outputName)
+
+  onProgress?.({ percent: 100, stage: "Done" })
+
+  return {
+    blob,
+    filename: file.name.replace(/\.[^.]+$/, `-compressed${outputFormat.extension}`),
+    size: blob.size,
+    duration: performance.now() - start,
+  }
+}
+
+// --- PDF Compression (re-render at lower DPI) ---
+
+async function compressWithPdfJs(
+  file: File,
+  _outputFormat: FileFormat,
+  _options: ConversionOptions,
+  onProgress?: ProgressCallback
+): Promise<ConversionResult> {
+  onProgress?.({ percent: 5, stage: "Loading PDF renderer..." })
+
+  const pdfjsLib = await import("pdfjs-dist")
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+
+  const buffer = await file.arrayBuffer()
+  const start = performance.now()
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise
+
+  onProgress?.({ percent: 20, stage: "Re-rendering at lower quality..." })
+
+  const { jsPDF } = await import("jspdf")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let doc: any = null
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    onProgress?.({ percent: 20 + Math.round((i / pdf.numPages) * 70), stage: `Compressing page ${i}/${pdf.numPages}...` })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const page: any = await pdf.getPage(i)
+    const viewport = page.getViewport({ scale: 1.5 })
+    const canvas = document.createElement("canvas")
+    canvas.width = viewport.width
+    canvas.height = viewport.height
+    const ctx = canvas.getContext("2d")!
+    await page.render({ canvasContext: ctx, viewport }).promise
+
+    const imgData = canvas.toDataURL("image/jpeg", 0.7)
+
+    if (i === 1) {
+      doc = new jsPDF({
+        orientation: viewport.width > viewport.height ? "landscape" : "portrait",
+        unit: "px",
+        format: [viewport.width, viewport.height],
+      })
+    } else {
+      doc.addPage([viewport.width, viewport.height], viewport.width > viewport.height ? "landscape" : "portrait")
+    }
+
+    doc.addImage(imgData, "JPEG", 0, 0, viewport.width, viewport.height)
+  }
+
+  const blob = doc.output("blob")
+
+  onProgress?.({ percent: 100, stage: "Done" })
+
+  return {
+    blob,
+    filename: file.name.replace(/\.[^.]+$/, "-compressed.pdf"),
+    size: blob.size,
+    duration: performance.now() - start,
+  }
 }

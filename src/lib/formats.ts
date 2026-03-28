@@ -11,6 +11,7 @@ export type FormatCategory =
   | "3d"
   | "vector"
   | "data"
+  | "compress"
 
 export interface FileFormat {
   id: string
@@ -110,6 +111,29 @@ const DATA_FORMATS: FileFormat[] = [
   { id: "toml", name: "TOML", extension: ".toml", mime: "application/toml", description: "Tom's Obvious Minimal Language", category: "data", engine: "native", clientSide: true },
 ]
 
+const COMPRESS_IMAGE_FORMATS: FileFormat[] = [
+  { id: "compress-jpeg", name: "Compress JPEG", extension: ".jpg", mime: "image/jpeg", description: "Reduce quality to shrink file size", category: "compress", engine: "magick-compress", clientSide: true },
+  { id: "compress-webp", name: "Compress to WebP", extension: ".webp", mime: "image/webp", description: "WebP is ~30% smaller than JPEG", category: "compress", engine: "magick-compress", clientSide: true },
+  { id: "compress-png", name: "Compress PNG", extension: ".png", mime: "image/png", description: "Re-encode with optimal compression", category: "compress", engine: "magick-compress", clientSide: true },
+]
+
+const COMPRESS_VIDEO_FORMATS: FileFormat[] = [
+  { id: "compress-mp4-low", name: "Compress MP4 (low)", extension: ".mp4", mime: "video/mp4", description: "CRF 28, visually acceptable", category: "compress", engine: "ffmpeg-compress", clientSide: true },
+  { id: "compress-mp4-med", name: "Compress MP4 (medium)", extension: ".mp4", mime: "video/mp4", description: "CRF 23, good balance", category: "compress", engine: "ffmpeg-compress", clientSide: true },
+  { id: "compress-mp4-small", name: "Compress to 720p", extension: ".mp4", mime: "video/mp4", description: "Scale down + compress", category: "compress", engine: "ffmpeg-compress", clientSide: true },
+  { id: "compress-webm", name: "Compress to WebM", extension: ".webm", mime: "video/webm", description: "VP9, efficient for web", category: "compress", engine: "ffmpeg-compress", clientSide: true },
+]
+
+const COMPRESS_AUDIO_FORMATS: FileFormat[] = [
+  { id: "compress-mp3-128", name: "Compress to MP3 128k", extension: ".mp3", mime: "audio/mpeg", description: "Good quality, small size", category: "compress", engine: "ffmpeg-compress", clientSide: true },
+  { id: "compress-mp3-64", name: "Compress to MP3 64k", extension: ".mp3", mime: "audio/mpeg", description: "Voice/podcast quality", category: "compress", engine: "ffmpeg-compress", clientSide: true },
+  { id: "compress-opus", name: "Compress to Opus", extension: ".opus", mime: "audio/opus", description: "Best compression for any bitrate", category: "compress", engine: "ffmpeg-compress", clientSide: true },
+]
+
+const COMPRESS_PDF_FORMATS: FileFormat[] = [
+  { id: "compress-pdf", name: "Compress PDF", extension: ".pdf", mime: "application/pdf", description: "Re-render at lower DPI", category: "compress", engine: "pdf-compress", clientSide: true },
+]
+
 export const ALL_FORMATS: FileFormat[] = [
   ...VIDEO_FORMATS,
   ...AUDIO_FORMATS,
@@ -121,6 +145,10 @@ export const ALL_FORMATS: FileFormat[] = [
   ...FONT_FORMATS,
   ...THREE_D_FORMATS,
   ...DATA_FORMATS,
+  ...COMPRESS_IMAGE_FORMATS,
+  ...COMPRESS_VIDEO_FORMATS,
+  ...COMPRESS_AUDIO_FORMATS,
+  ...COMPRESS_PDF_FORMATS,
 ]
 
 export const FORMAT_GROUPS: FormatGroup[] = [
@@ -169,15 +197,27 @@ export function getOutputFormats(inputMime: string): FormatGroup[] {
     }
   }
 
-  // Always include archive (any file can be compressed) and data formats
+  // Always include archive (any file can be compressed)
   matchingCategories.add("archive")
 
   if (matchingCategories.size <= 1) {
-    // If only archive matched, show everything
     return FORMAT_GROUPS
   }
 
-  return FORMAT_GROUPS.filter((g) => matchingCategories.has(g.category))
+  const groups = FORMAT_GROUPS.filter((g) => matchingCategories.has(g.category))
+
+  // Add compression options based on input type
+  const compressFormats: FileFormat[] = []
+  if (inputMime.startsWith("image/")) compressFormats.push(...COMPRESS_IMAGE_FORMATS)
+  if (inputMime.startsWith("video/")) compressFormats.push(...COMPRESS_VIDEO_FORMATS)
+  if (inputMime.startsWith("audio/")) compressFormats.push(...COMPRESS_AUDIO_FORMATS)
+  if (inputMime === "application/pdf") compressFormats.push(...COMPRESS_PDF_FORMATS)
+
+  if (compressFormats.length > 0) {
+    groups.unshift({ category: "compress", label: "Compress / Reduce Size", formats: compressFormats })
+  }
+
+  return groups
 }
 
 export function detectMimeType(file: File): string {
@@ -231,6 +271,7 @@ export function getCategoryIcon(category: FormatCategory): string {
     "3d": "box",
     vector: "pen-tool",
     data: "braces",
+    compress: "minimize-2",
   }
   return icons[category]
 }
